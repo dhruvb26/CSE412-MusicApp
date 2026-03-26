@@ -1,6 +1,4 @@
--- ----------------------------------------------------------------
--- Artist (strong entity)
--- ----------------------------------------------------------------
+-- Artist is a strong entity; artist_id uniquely identifies each artist.
 CREATE TABLE IF NOT EXISTS Artist (
     artist_id   INTEGER         PRIMARY KEY,
     name        VARCHAR(150)    NOT NULL,
@@ -8,11 +6,7 @@ CREATE TABLE IF NOT EXISTS Artist (
     type        VARCHAR(50)
 );
 
--- ----------------------------------------------------------------
--- Album (strong entity + Releases merged in)
--- artist_id NOT NULL: thick arrow from Album to Releases
--- ON DELETE NO ACTION
--- ----------------------------------------------------------------
+-- Album is a strong entity; each album must belong to one artist (1:N via artist_id).
 
 CREATE TABLE IF NOT EXISTS Album (
     album_id        INTEGER         PRIMARY KEY,
@@ -24,12 +18,7 @@ CREATE TABLE IF NOT EXISTS Album (
         ON DELETE NO ACTION
 );
 
--- ----------------------------------------------------------------
--- Song (strong entity + Contains merged in)
--- album_id NOT NULL: thick arrow from Song to Contains
--- track_number comes from the Contains relationship
--- ON DELETE NO ACTION
--- ----------------------------------------------------------------
+-- Song is a strong entity; each song must belong to one album (1:N via album_id).
 CREATE TABLE IF NOT EXISTS Song (
     song_id         INTEGER         PRIMARY KEY,
     title           VARCHAR(200)    NOT NULL,
@@ -40,21 +29,14 @@ CREATE TABLE IF NOT EXISTS Song (
         ON DELETE NO ACTION
 );
  
--- ----------------------------------------------------------------
--- User (strong entity)
--- ----------------------------------------------------------------
+-- User is a strong entity; each user_id uniquely identifies an app user.
 CREATE TABLE IF NOT EXISTS "User" (
     user_id     INTEGER         PRIMARY KEY,
     username    VARCHAR(100)    NOT NULL,
     isAdmin     BOOLEAN         NOT NULL DEFAULT FALSE
 );
 
--- ----------------------------------------------------------------
--- Credits (M:N relationship: Artist - Song)
--- Thick line on Song side = participation constraint only (not key)
--- Still M:N so 3-table solution applies
--- PK = (artist_id, song_id), role is descriptor attribute
--- ----------------------------------------------------------------
+-- Credits resolves Artist<->Song M:N and stores role; composite PK prevents duplicates.
 CREATE TABLE IF NOT EXISTS Credits (
     artist_id   INTEGER         NOT NULL,
     song_id     INTEGER         NOT NULL,
@@ -64,11 +46,7 @@ CREATE TABLE IF NOT EXISTS Credits (
     FOREIGN KEY (song_id)   REFERENCES Song(song_id)
 );
 
--- ----------------------------------------------------------------
--- Review (M:N relationship: User - Song)
--- Thin lines on both sides, no arrows
--- 3-table solution: PK = (user_id, song_id), rating is descriptor
--- ----------------------------------------------------------------
+-- Review resolves User<->Song M:N and stores rating; composite PK enforces one review per pair.
 CREATE TABLE IF NOT EXISTS Review (
     user_id     INTEGER         NOT NULL,
     song_id     INTEGER         NOT NULL,

@@ -1,0 +1,13 @@
+{
+  "name": "api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000",
+    "build": "echo \"No build step for api\"",
+    "lint": "uv run ruff check .",
+    "lint:fix": "uv run ruff check --fix .",
+    "format": "uv run ruff format .",
+    "check-types": "uv run python -m py_compile main.py"
+  }
+}

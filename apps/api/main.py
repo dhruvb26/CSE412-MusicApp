@@ -1,7 +1,25 @@
 from fastapi import FastAPI
-import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from routes.albums import router as albums_router
+from routes.artists import router as artists_router
+from routes.reviews import router as reviews_router
+from routes.songs import router as songs_router
+from routes.users import router as users_router
 
-app = FastAPI(title="API", version="0.1.0")
+app = FastAPI(title="Music Database API", version="0.1.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(artists_router)
+app.include_router(albums_router)
+app.include_router(songs_router)
+app.include_router(users_router)
+app.include_router(reviews_router)
 
 
 @app.get("/health")
@@ -11,8 +29,4 @@ def health() -> dict[str, str]:
 
 @app.get("/")
 def root() -> dict[str, str]:
-    return {"message": "Hello from FastAPI"}
-
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    return {"message": "Music Database API"}

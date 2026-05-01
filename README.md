@@ -1,72 +1,36 @@
-# CSE412 Music App
+# CSE 412 Music Database App
 
-Make sure you have [Bun](https://bun.sh), [Turborepo](https://turborepo.dev), and [Biome](https://biomejs.dev) installed.
+**Team 24** — Dhruv Bansal, Marlow Odeh, & Austin Kearsley
 
-Run the following command after cloning the repository:
+A music information database that lets users browse artists, albums, songs, credits, and reviews. Built with Next.js, FastAPI, and PostgreSQL.
 
-```sh
+## Prerequisites
+
+- [Bun](https://bun.sh)
+- [uv](https://docs.astral.sh/uv/)
+- [Docker](https://www.docker.com/) (for PostgreSQL)
+
+## Quick Start
+
+```bash
+# 1. Install JS dependencies
 bun install
-```
 
-## What's inside?
+# 2. Start PostgreSQL
+docker compose up -d
 
-This Turborepo includes the following packages/apps:
+# 3. Load data into the database (from apps/api)
+cd apps/api
+uv run scripts/load_csv_to_postgres.py
 
-### Apps and Packages
-
-- `web`: a [Next.js](https://nextjs.org/) app
-- `api`: a [FastAPI](https://fastapi.tiangolo.com/) service
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-bunx turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-bunx turbo build --filter=docs
-
-# Example: build only the API app
-bunx turbo build --filter=api
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
+# 4. Start both the API and web app
+cd ../..
 bunx turbo dev
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+The web app runs at [http://localhost:3000](http://localhost:3000) and the API at [http://localhost:8000](http://localhost:8000).
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+## Project Structure
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-bunx turbo dev --filter=web
-
-# Example: run only the API app
-bunx turbo dev --filter=api
-```
+- `apps/web` — Next.js frontend
+- `apps/api` — FastAPI backend with PostgreSQL

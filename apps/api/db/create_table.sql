@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS Artist (
     artist_id   INTEGER         PRIMARY KEY,
     name        VARCHAR(150)    NOT NULL,
     country     VARCHAR(100),
-    type        VARCHAR(50)
+    type        VARCHAR(50),
+    image_url   TEXT
 );
 
 -- Album is a strong entity; each album must belong to one artist (1:N via artist_id).
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS Album (
     type            VARCHAR(50),
     release_date    DATE,
     artist_id       INTEGER         NOT NULL,
+    image_url       TEXT,
     FOREIGN KEY (artist_id) REFERENCES Artist(artist_id)
         ON DELETE NO ACTION
 );

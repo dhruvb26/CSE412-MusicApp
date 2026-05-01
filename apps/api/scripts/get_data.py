@@ -78,11 +78,15 @@ def main() -> None:
         if not aid or not name:
             return None
         if aid not in artist_by_spotify:
+            images = sp_artist.get("images") or []
+            image_url = images[0]["url"] if images else ""
             artist_by_spotify[aid] = {
                 "artist_id": next_artist_id,
                 "name": name,
                 "country": None,
                 "type": "solo",
+                "image_url": image_url,
+                "spotify_id": aid,
             }
             next_artist_id += 1
         return artist_by_spotify[aid]["artist_id"]
@@ -191,12 +195,16 @@ def main() -> None:
                     else:
                         release_date = release_date_raw
 
+                alb_images = full_album.get("images") or []
+                alb_image_url = alb_images[0]["url"] if alb_images else ""
+
                 album_by_spotify[album_id_sp] = {
                     "album_id": next_album_id,
                     "title": full_album.get("name") or "",
                     "type": album_type,
                     "release_date": release_date,
                     "artist_id": primary_album_artist_id,
+                    "image_url": alb_image_url,
                 }
                 next_album_id += 1
 
@@ -225,6 +233,23 @@ def main() -> None:
         offset += len(batch)
         if not page.get("next"):
             break
+
+    spotify_ids = list(artist_by_spotify.keys())
+    for i in range(0, len(spotify_ids), 50):
+        batch_ids = spotify_ids[i : i + 50]
+        try:
+            time.sleep(0.2)
+            results = sp.artists(batch_ids)
+            for full_art in results.get("artists") or []:
+                if not full_art:
+                    continue
+                sid = full_art.get("id")
+                if sid and sid in artist_by_spotify:
+                    images = full_art.get("images") or []
+                    if images and not artist_by_spotify[sid]["image_url"]:
+                        artist_by_spotify[sid]["image_url"] = images[0]["url"]
+        except Exception as exc:
+            logger.error("Failed to fetch artist images batch: %s", exc)
 
     for rec in artist_by_spotify.values():
         rec["country"] = lookup_musicbrainz_country(rec["name"])
@@ -263,7 +288,13 @@ def main() -> None:
         (
             "artist.csv",
             [
-                (a["artist_id"], a["name"], a["country"] or "Unknown", a["type"])
+                (
+                    a["artist_id"],
+                    a["name"],
+                    a["country"] or "Unknown",
+                    a["type"],
+                    a.get("image_url") or "",
+                )
                 for a in sorted(
                     artist_by_spotify.values(), key=lambda x: x["artist_id"]
                 )
@@ -278,6 +309,7 @@ def main() -> None:
                     a["type"],
                     a["release_date"],
                     a["artist_id"],
+                    a.get("image_url") or "",
                 )
                 for a in sorted(album_by_spotify.values(), key=lambda x: x["album_id"])
             ],

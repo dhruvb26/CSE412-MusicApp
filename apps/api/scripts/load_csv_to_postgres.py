@@ -22,8 +22,9 @@ def _configure_logging() -> None:
 
 def _connect():
     database_url = os.getenv("DATABASE_URL")
-    
+
     return psycopg2.connect(database_url)
+
 
 def main() -> None:
     _configure_logging()
@@ -53,11 +54,10 @@ def main() -> None:
 
     with _connect() as conn:
         with conn.cursor() as cur:
-            cur.execute(ddl_sql)
             cur.execute(
-                'TRUNCATE review, credits, "User", song, album, artist '
-                "RESTART IDENTITY CASCADE;"
+                'DROP TABLE IF EXISTS review, credits, "User", song, album, artist CASCADE'
             )
+            cur.execute(ddl_sql)
 
             for table, csv_name in csv_mappings:
                 csv_path = data_dir / csv_name

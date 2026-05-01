@@ -22,8 +22,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="max-w-6xl mx-auto px-4 py-6">
-            <header className="flex items-center justify-between mb-4">
+          <div className="max-w-6xl mx-auto px-4 py-6 h-screen flex flex-col">
+            <header className="flex items-center justify-between mb-4 shrink-0">
               <div className="flex flex-col gap-1 font-medium">
                 <h1 className="text-sm tracking-tight">MusicApp</h1>
                 <p className="text-sm text-muted-foreground">
@@ -31,7 +31,7 @@ export default function RootLayout({
                 </p>
               </div>
             </header>
-            <main>{children}</main>
+            <main className="flex-1 min-h-0">{children}</main>
           </div>
         </ThemeProvider>
       </body>

@@ -1,6 +1,6 @@
 # CSE 412 Music Database App
 
-**Team 24** — Dhruv Bansal, Marlow Odeh, & Austin Kearsley
+**Team 24** - Dhruv Bansal, Marlow Odeh, & Austin Kearsley
 
 A music information database that lets users browse artists, albums, songs, credits, and reviews. Built with Next.js, FastAPI, and PostgreSQL.
 
@@ -32,5 +32,5 @@ The web app runs at [http://localhost:3000](http://localhost:3000) and the API a
 
 ## Project Structure
 
-- `apps/web` — Next.js frontend
-- `apps/api` — FastAPI backend with PostgreSQL
+- `apps/web` - Next.js frontend
+- `apps/api` - FastAPI backend with PostgreSQL

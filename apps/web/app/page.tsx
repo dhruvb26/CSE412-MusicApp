@@ -311,6 +311,11 @@ export default function Home() {
                                     </span>
                                   ))}
                                 </span>
+                                {r.comment && (
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {r.comment}
+                                  </p>
+                                  )}
                               </div>
                             </div>
                           );

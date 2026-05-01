@@ -65,7 +65,12 @@ export interface SongDetail extends Song {
     role: string;
     image_url: string | null;
   }[];
-  reviews: { user_id: number; username: string; rating: number }[];
+  reviews: {
+  user_id: number;
+  username: string;
+  rating: number;
+  comment?: string | null;
+}[];
   avg_rating: number;
 }
 

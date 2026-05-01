@@ -40,6 +40,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "musicbrainzngs" },
     { name = "psycopg2" },
+    { name = "python-dotenv" },
     { name = "spotipy" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -54,6 +55,7 @@ requires-dist = [
     { name = "fastapi" },
     { name = "musicbrainzngs", specifier = ">=0.7.1" },
     { name = "psycopg2", specifier = ">=2.9.11" },
+    { name = "python-dotenv", specifier = ">=1.0.0" },
     { name = "spotipy", specifier = ">=2.26.0" },
     { name = "uvicorn", extras = ["standard"] },
 ]

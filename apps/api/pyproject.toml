@@ -8,6 +8,7 @@ dependencies = [
     "fastapi",
     "musicbrainzngs>=0.7.1",
     "psycopg2>=2.9.11",
+    "python-dotenv>=1.0.0",
     "spotipy>=2.26.0",
     "uvicorn[standard]",
 ]

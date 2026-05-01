@@ -69,6 +69,19 @@ export interface SongDetail extends Song {
   avg_rating: number;
 }
 
+export interface User {
+  user_id: number;
+  username: string;
+  isadmin: boolean;
+}
+
+export interface UserDetail extends User {
+  username: string | null;
+  user_id: number;
+  reviews: { song_id: number; title: string; rating: number }[];
+}
+
+
 export async function getArtists(search = "") {
   const { data } = await api.get<Artist[]>("/artists", { params: { search } });
   return data;
@@ -96,5 +109,27 @@ export async function getSongs(search = "") {
 
 export async function getSong(id: number) {
   const { data } = await api.get<SongDetail>(`/songs/${id}`);
+  return data;
+}
+
+export async function getUsers(search = "") {
+  const { data } = await api.get<Users[]>("/users", { params: { search } });
+  return data;
+}
+
+export async function getUser(id: number) {
+  const { data } = await api.get<UserDetail>(`/users/${id}`);
+  return data;
+}
+
+export async function deleteUser(id: number) {
+  const { data } = await api.delete<>(`/users/${id}`);
+  return data;
+}
+
+export async function addUser(username: string) {
+  const { data } = await api.post<>(`/users`, {
+    username
+  });
   return data;
 }

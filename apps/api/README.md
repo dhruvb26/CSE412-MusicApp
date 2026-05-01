@@ -33,6 +33,7 @@ uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 | GET | `/api/songs` | List/search songs |
 | GET | `/api/songs/:id` | Song detail with credits, reviews, avg rating |
 | GET | `/api/users` | List users |
+| GET | `/api/users/:id` | User details with username and reviews |
 | POST | `/api/users` | Create user |
 | DELETE | `/api/users/:id` | Delete user and their reviews |
 | POST | `/api/reviews` | Create review |

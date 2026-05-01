@@ -22,6 +22,28 @@ def list_users():
         {"user_id": r[0], "username": r[1], "is_admin": r[2]} for r in rows
     ]
 
+@router.get("/{user_id}")
+def list_users(user_id: int):
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT username FROM \"User\" WHERE user_id = %s", (user_id,))
+            row = cur.fetchall()
+            if not row:
+                raise HTTPException(status_code=404, detail="Song not found")
+            user = {"username": row[0], "user_id": user_id}
+            cur.execute(
+                """SELECT r.song_id, s.title, r.rating
+                   FROM review r JOIN Song s ON s.song_id = r.song_id
+                   WHERE r.user_id = %s
+                   ORDER BY s.title""",
+                (user_id,),
+            )
+            reviews = [
+                {"song_id": r[0], "title": r[1], "rating": r[2]}
+                for r in cur.fetchall()
+            ]
+    return {**user, "reviews": reviews}
+
 
 @router.post("")
 def create_user(body: CreateUserBody):

@@ -10,22 +10,30 @@ import {
   type AlbumDetail,
   type Artist,
   type ArtistDetail,
+  type User,
+  type UserDetail,
   getAlbum,
   getAlbums,
   getArtist,
   getArtists,
   getSong,
   getSongs,
+  getUsers,
+  getUser,
+  deleteUser,
+  addUser,
   type Song,
   type SongDetail,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type View = "albums" | "artists" | "songs";
+type View = "albums" | "artists" | "songs" | "users";
 type Panel =
   | { kind: "album"; data: AlbumDetail }
   | { kind: "artist"; data: ArtistDetail }
-  | { kind: "song"; data: SongDetail };
+  | { kind: "song"; data: SongDetail }
+  | { kind: "user"; data: UserDetail }
+  | { kind: "addUser"};
 
 export default function Home() {
   const [view, setView] = useState<View>("albums");
@@ -33,11 +41,14 @@ export default function Home() {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [artists, setArtists] = useState<Artist[]>([]);
   const [songs, setSongs] = useState<Song[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [panel, setPanel] = useState<Panel | null>(null);
+  const [newUsername, setNewUsername] = useState("");
 
   useEffect(() => {
     if (view === "albums") getAlbums(search).then(setAlbums);
     else if (view === "artists") getArtists(search).then(setArtists);
+    else if (view === "user") getUsers(search).then(setUsers);
     else getSongs(search).then(setSongs);
   }, [view, search]);
 
@@ -45,6 +56,7 @@ export default function Home() {
     getAlbums().then(setAlbums);
     getArtists().then(setArtists);
     getSongs().then(setSongs);
+    getUsers().then(setUsers);
   }, []);
 
   async function openAlbum(id: number) {
@@ -55,6 +67,23 @@ export default function Home() {
   }
   async function openSong(id: number) {
     setPanel({ kind: "song", data: await getSong(id) });
+  }
+  async function openUser(id: number) {
+    setPanel({ kind: "user", data: await getUser(id) });
+  }
+  async function openAdd(id: number) {
+    setPanel({ kind: "addUser" });
+  }
+  async function deletingUser(id: number) {
+    await deleteUser(id)
+    setPanel(null)
+    getUsers().then(setUsers);
+  }
+  async function addingUser() {
+    await addUser(newUsername)
+    setPanel(null)
+    setNewUsername("")
+    getUsers().then(setUsers);
   }
 
   return (
@@ -75,6 +104,30 @@ export default function Home() {
               >
                 Close
               </Button>
+
+	      {panel.kind === "addUser" && (
+                <>
+                  <div>
+                    <div className="flex flex-col gap-2">
+                      <h2 className="font-bold text-lg">{"Create New User"}</h2>
+                      <input
+			type="text"
+			placeholder="Enter Username"
+			value={newUsername}
+			onChange={(e) => setNewUsername(e.target.value)}
+			className="border px-3 py-2 rounded w-48"
+		      />
+		      <button
+			      type="button"
+			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
+			      onClick={() => addingUser()}
+			    >
+			      + Add User
+		    </button>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {panel.kind === "album" && (
                 <>
@@ -128,6 +181,65 @@ export default function Home() {
                         </span>
                       </Button>
                     ))}
+                  </div>
+                </>
+              )}
+              {panel.kind === "user" && (
+                <>
+                  <div>
+                    <div className="flex flex-col gap-2">
+                      <h2 className="font-bold text-lg">{panel.data.username}</h2>
+                      <br />
+                      <Button
+                        key={panel.data.username}
+                        onClick={() => deletingUser(panel.data.user_id)}
+                        className="bg-red-500 text-white hover:bg-red-600 w-fit"
+                      >
+                      {"Delete?"}
+                      </Button>
+                    </div>
+                    {panel.data.reviews.length > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                        Reviews
+                      </p>
+                      <div className="space-y-2">
+                        {panel.data.reviews.map((r) => {
+                          const displayName = r.title
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (c) => c.toUpperCase());
+                          return (
+                            <div
+                              key={r.song_id}
+                              className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50"
+                            >
+                              <div className="w-6 h-6 rounded-full shrink-0 bg-foreground" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {displayName}
+                                </p>
+                                <span className="flex gap-0.5">
+                                  {[1, 2, 3, 4, 5].map((n) => (
+                                    <span
+                                      key={n}
+                                      className={cn(
+                                        "text-[10px]",
+                                        n <= r.rating
+                                          ? "text-foreground"
+                                          : "text-muted-foreground/30",
+                                      )}
+                                    >
+                                      *
+                                    </span>
+                                  ))}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   </div>
                 </>
               )}
@@ -307,7 +419,7 @@ export default function Home() {
                                           : "text-muted-foreground/30",
                                       )}
                                     >
-                                      ●
+                                      *
                                     </span>
                                   ))}
                                 </span>
@@ -327,7 +439,7 @@ export default function Home() {
         <div className="flex-1 min-w-0 overflow-y-auto space-y-4">
           <div className="flex items-center justify-between sticky top-0 bg-background z-10 pb-2 px-2">
             <div className="flex gap-4 text-sm">
-              {(["albums", "artists", "songs"] as const).map((v) => (
+              {(["albums", "artists", "songs","users"] as const).map((v) => (
                 <Button
                   key={v}
                   variant="ghost"
@@ -453,6 +565,29 @@ export default function Home() {
                   </div>
                 </button>
               ))}
+              {view === "users" && (
+		  <>
+		  <div className="col-span-full flex justify-end">
+		    <button
+		      type="button"
+		      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
+		      onClick={() => openAdd()}
+		    >
+		      Create New User
+		    </button>
+		    </div>
+		    {users.map((user) => (
+		      <button
+			key={user.user_id}
+			type="button"
+			className="group relative cursor-pointer text-left"
+			onClick={() => openUser(user.user_id)}
+		      >
+			{user.username}
+		      </button>
+		    ))}
+		  </>
+		)}
           </div>
         </div>
       </div>

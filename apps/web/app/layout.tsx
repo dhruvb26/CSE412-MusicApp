@@ -26,7 +26,9 @@ export default function RootLayout({
             <header className="flex items-center justify-between mb-4">
               <div className="flex flex-col gap-1 font-medium">
                 <h1 className="text-sm tracking-tight">MusicApp</h1>
-                <p className="text-sm text-muted-foreground">Dhruv Bansal, Marlow Odeh, &amp; Austin Kearsley</p>
+                <p className="text-sm text-muted-foreground">
+                  Dhruv Bansal, Marlow Odeh, &amp; Austin Kearsley
+                </p>
               </div>
             </header>
             <main>{children}</main>

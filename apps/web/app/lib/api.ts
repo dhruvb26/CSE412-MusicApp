@@ -14,7 +14,13 @@ export interface Artist {
 
 export interface ArtistDetail extends Artist {
   albums: (Album & { image_url: string | null })[];
-  songs: { song_id: number; title: string; duration: string; album_title: string; image_url: string | null }[];
+  songs: {
+    song_id: number;
+    title: string;
+    duration: string;
+    album_title: string;
+    image_url: string | null;
+  }[];
 }
 
 export interface Album {
@@ -31,7 +37,12 @@ export interface AlbumDetail extends Album {
   artist_name: string;
   artist_id: number;
   image_url: string | null;
-  songs: { song_id: number; title: string; duration: string; track_number: number }[];
+  songs: {
+    song_id: number;
+    title: string;
+    duration: string;
+    track_number: number;
+  }[];
 }
 
 export interface Song {
@@ -48,7 +59,12 @@ export interface Song {
 
 export interface SongDetail extends Song {
   artist_image_url: string | null;
-  credits: { artist_id: number; name: string; role: string; image_url: string | null }[];
+  credits: {
+    artist_id: number;
+    name: string;
+    role: string;
+    image_url: string | null;
+  }[];
   reviews: { user_id: number; username: string; rating: number }[];
   avg_rating: number;
 }

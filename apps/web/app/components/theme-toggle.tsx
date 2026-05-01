@@ -10,7 +10,15 @@ export function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <Button variant="ghost" size="sm" className="text-xs" aria-label="Toggle theme" />;
+  if (!mounted)
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-xs"
+        aria-label="Toggle theme"
+      />
+    );
 
   return (
     <Button

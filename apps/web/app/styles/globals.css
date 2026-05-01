@@ -126,3 +126,8 @@
 @theme inline {
   --font-sans: var(--font-inter);
 }
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--muted-foreground) transparent;
+}

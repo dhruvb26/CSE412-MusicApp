@@ -12,6 +12,7 @@ import {
   type ArtistDetail,
   type User,
   type UserDetail,
+  type ReviewDetail,
   getAlbum,
   getAlbums,
   getArtist,
@@ -50,7 +51,7 @@ export default function Home() {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [newUsername, setNewUsername] = useState("");
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState("1");
+  const [selected, setSelected] = useState(1);
   const [comments, setComments] = useState("");
 
   useEffect(() => {
@@ -79,7 +80,7 @@ export default function Home() {
   async function openUser(id: number) {
     setPanel({ kind: "user", data: await getUser(id) });
   }
-  async function openAdd(id: number) {
+  async function openAdd() {
     setPanel({ kind: "addUser" });
   }
   async function deletingUser(id: number) {
@@ -111,18 +112,16 @@ async function openReviewAdd(user: number) {
     setPanel({ kind: "addReview", data: user });
   }
   async function addingReview(user: number) {
-    const songs = await getSongs(newUsername);
-	  if (!songs.length) {
-	    console.log("No songs available");
-	    setNewUsername("No songs available")
-	    return;
-	  }
-    const firstSong = songs[0];
-    addReview(user, firstSong.song_id, selected, comments)
-    setPanel(null)
-    setSelected(1)
-    setNewUsername("")
-    setComments("")
+    const results = await getSongs(newUsername);
+    if (!results.length) {
+      setNewUsername("No songs available");
+      return;
+    }
+    await addReview(user, results[0]!.song_id, selected, comments);
+    setPanel(null);
+    setSelected(1);
+    setNewUsername("");
+    setComments("");
   }
   return (
     <div className="h-full flex flex-col">
@@ -516,9 +515,18 @@ async function openReviewAdd(user: number) {
                     />
                   )}
                   <div>
-                    <h2 className="font-bold text-lg">{panel.data.title}</h2>
-                     <div className="text-sm text-yellow-500 font-medium mt-1">
-                     ⭐ {panel.data.avg_rating.toFixed(1)} / 5 
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-bold text-lg">{panel.data.title}</h2>
+                      <span className="flex items-center gap-1 text-sm text-yellow-500 font-medium">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                          className="w-3.5 h-3.5"
+                        >
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        {panel.data.avg_rating.toFixed(1)}
+                      </span>
                     </div>
                     <Button
                       variant="link"

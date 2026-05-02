@@ -123,7 +123,7 @@ export async function getSong(id: number) {
 }
 
 export async function getUsers(search = "") {
-  const { data } = await api.get<Users[]>("/users", { params: { search } });
+  const { data } = await api.get<User[]>("/users", { params: { search } });
   return data;
 }
 
@@ -133,19 +133,17 @@ export async function getUser(id: number) {
 }
 
 export async function deleteUser(id: number) {
-  const { data } = await api.delete<>(`/users/${id}`);
+  const { data } = await api.delete(`/users/${id}`);
   return data;
 }
 
 export async function addUser(username: string) {
-  const { data } = await api.post<>(`/users`, {
-    username
-  });
+  const { data } = await api.post(`/users`, { username });
   return data;
 }
 
 export async function makeChange(rating: number, user: number, song: number, comment: string) {
-  const { data } = await api.put<>(`/reviews`, {
+  const { data } = await api.put(`/reviews`, {
     user_id: user,
     song_id: song,
     rating: rating,
@@ -155,11 +153,12 @@ export async function makeChange(rating: number, user: number, song: number, com
 }
 
 export async function deleteReview(user: number, song: number) {
-  const { data } = await api.delete<>(`/reviews/${user}/${song}`);
+  const { data } = await api.delete(`/reviews/${user}/${song}`);
   return data;
 }
+
 export async function addReview(user: number, song: number, rating: number, comment: string) {
-  const { data } = await api.post<>(`/reviews`, {
+  const { data } = await api.post(`/reviews`, {
     user_id: user,
     song_id: song,
     rating: rating,

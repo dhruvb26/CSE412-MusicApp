@@ -23,13 +23,13 @@ def list_users():
     ]
 
 @router.get("/{user_id}")
-def list_users(user_id: int):
+def get_user(user_id: int):
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT username FROM \"User\" WHERE user_id = %s", (user_id,))
-            row = cur.fetchall()
+            row = cur.fetchone()
             if not row:
-                raise HTTPException(status_code=404, detail="Song not found")
+                raise HTTPException(status_code=404, detail="User not found")
             user = {"username": row[0], "user_id": user_id}
             cur.execute(
                 """SELECT r.song_id, s.title, r.rating, r.comment

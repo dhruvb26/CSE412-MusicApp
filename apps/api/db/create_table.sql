@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS Review (
     user_id     INTEGER         NOT NULL,
     song_id     INTEGER         NOT NULL,
     rating      INTEGER,
+    comment     TEXT,
     PRIMARY KEY (user_id, song_id),
     FOREIGN KEY (user_id)   REFERENCES "User"(user_id),
     FOREIGN KEY (song_id)   REFERENCES Song(song_id)

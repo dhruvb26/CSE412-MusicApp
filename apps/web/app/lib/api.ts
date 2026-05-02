@@ -66,11 +66,11 @@ export interface SongDetail extends Song {
     image_url: string | null;
   }[];
   reviews: {
-  user_id: number;
-  username: string;
-  rating: number;
-  comment?: string | null;
-}[];
+    user_id: number;
+    username: string;
+    rating: number;
+    comment?: string | null;
+  }[];
   avg_rating: number;
 }
 

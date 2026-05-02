@@ -227,6 +227,10 @@ export default function Home() {
                   )}
                   <div>
                     <h2 className="font-bold text-lg">{panel.data.title}</h2>
+
+                    <div className="text-sm text-yellow-500 font-medium mt-1">
+                     ⭐ {panel.data.avg_rating.toFixed(1)} / 5 
+                    </div>
                     <Button
                       variant="link"
                       size="sm"

@@ -95,9 +95,9 @@ def get_song(song_id: int):
 
             cur.execute(
                 """SELECT r.user_id, u.username, r.rating
-                   FROM review r JOIN "User" u ON u.user_id = r.user_id
-                   WHERE r.song_id = %s
-                   ORDER BY u.username""",
+                    FROM review r JOIN "User" u ON u.user_id = r.user_id
+                    WHERE r.song_id = %s
+                    ORDER BY u.username""",
                 (song_id,),
             )
             reviews = [

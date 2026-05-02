@@ -22,6 +22,9 @@ import {
   getUser,
   deleteUser,
   addUser,
+  makeChange,
+  deleteReview,
+  addReview,
   type Song,
   type SongDetail,
 } from "@/lib/api";
@@ -33,7 +36,9 @@ type Panel =
   | { kind: "artist"; data: ArtistDetail }
   | { kind: "song"; data: SongDetail }
   | { kind: "user"; data: UserDetail }
-  | { kind: "addUser"};
+  | { kind: "addUser"}
+  | { kind: "editReview"; data: ReviewDetail }
+  | { kind: "addReview"; data: number };
 
 export default function Home() {
   const [view, setView] = useState<View>("albums");
@@ -44,11 +49,13 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [newUsername, setNewUsername] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState("1");
 
   useEffect(() => {
     if (view === "albums") getAlbums(search).then(setAlbums);
     else if (view === "artists") getArtists(search).then(setArtists);
-    else if (view === "user") getUsers(search).then(setUsers);
+    else if (view === "users") getUsers(search).then(setUsers);
     else getSongs(search).then(setSongs);
   }, [view, search]);
 
@@ -85,7 +92,35 @@ export default function Home() {
     setNewUsername("")
     getUsers().then(setUsers);
   }
-
+  async function openEdit(x: ReviewDetail) {
+    setSelected(x.rating);
+    setPanel({ kind: "editReview", data: x });
+  }
+  async function saveChange(user:number, song:number) {
+    await makeChange(selected, user, song)
+    setPanel(null)
+    setSelected(1)
+  }
+  async function deletingReview(song_id:number, user_id:number) {
+    await deleteReview(user_id, song_id)
+    setPanel(null)
+  }
+async function openReviewAdd(user: number) {
+    setPanel({ kind: "addReview", data: user });
+  }
+  async function addingReview(user: number) {
+    const songs = await getSongs(newUsername);
+	  if (!songs.length) {
+	    console.log("No songs available");
+	    setNewUsername("No songs available")
+	    return;
+	  }
+    const firstSong = songs[0];
+    addReview(user, firstSong.song_id, selected)
+    setPanel(null)
+    setSelected(1)
+    setNewUsername("")
+  }
   return (
     <div className="h-full flex flex-col">
       <div className="flex gap-6 flex-1 min-h-0">
@@ -123,6 +158,99 @@ export default function Home() {
 			      onClick={() => addingUser()}
 			    >
 			      + Add User
+		    </button>
+                    </div>
+                  </div>
+                </>
+              )}
+              {panel.kind === "addReview" && (
+                <>
+                  <div>
+                    <div className="flex flex-col gap-2">
+                      <h2 className="font-bold text-lg">{"Create New Review"}</h2>
+                      <input
+			type="text"
+			placeholder="Enter Song"
+			value={newUsername}
+			onChange={(e) => setNewUsername(e.target.value)}
+			className="border px-3 py-2 rounded w-48"
+		      />
+		      <div className="relative inline-block text-left">
+			  {/* Button */}
+			  <button
+			    onClick={() => setOpen(!open)}
+			    className="bg-gray-800 text-white px-3 py-1 rounded"
+			  >
+			    {selected} ▾
+			  </button>
+
+			  {/* Menu */}
+			  {open && (
+			    <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md z-50">
+			      {[1,2,3,4,5].map((item) => (
+				<button
+				  key={item}
+				  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
+				  onClick={() => {
+				    setSelected(item);
+				    setOpen(false);
+				  }}
+				>
+				  {item}
+				</button>
+			      ))}
+			    </div>
+			  )}
+			</div>
+		      <button
+			      type="button"
+			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
+			      onClick={() => addingReview(panel.data)}
+			    >
+			      + Add review
+		    </button>
+                    </div>
+                  </div>
+                </>
+              )}
+              {panel.kind === "editReview" && (
+                <>
+                  <div>
+                    <div className="flex flex-col gap-2">
+                      <h2 className="font-bold text-lg">{"Edit Review"}</h2>
+                      <div className="relative inline-block text-left">
+			  {/* Button */}
+			  <button
+			    onClick={() => setOpen(!open)}
+			    className="bg-gray-800 text-white px-3 py-1 rounded"
+			  >
+			    {selected} ▾
+			  </button>
+
+			  {/* Menu */}
+			  {open && (
+			    <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md z-50">
+			      {[1,2,3,4,5].map((item) => (
+				<button
+				  key={item}
+				  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
+				  onClick={() => {
+				    setSelected(item);
+				    setOpen(false);
+				  }}
+				>
+				  {item}
+				</button>
+			      ))}
+			    </div>
+			  )}
+			</div>
+			<button
+			      type="button"
+			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
+			      onClick={() => saveChange(panel.data.user_id, panel.data.song_id)}
+			    >
+			      Save Change
 		    </button>
                     </div>
                   </div>
@@ -198,12 +326,21 @@ export default function Home() {
                       {"Delete?"}
                       </Button>
                     </div>
-                    {panel.data.reviews.length > 0 && (
+                    {panel.data.reviews.length >= 0 && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-2">
                         Reviews
                       </p>
                       <div className="space-y-2">
+                      		<button
+				    type="button"
+				    className="bg-green-500 text-white px-2 py-1 rounded"
+				    onClick={() =>
+					  openReviewAdd(panel.data.user_id)
+					}
+				  >
+				    New Review
+				  </button>
                         {panel.data.reviews.map((r) => {
                           const displayName = r.title
                             .replace(/_/g, " ")
@@ -232,6 +369,27 @@ export default function Home() {
                                       *
                                     </span>
                                   ))}
+                                  <div className="col-span-full w-full flex justify-end">
+				  <button
+				    type="button"
+				    className="bg-green-500 text-white px-2 py-1 rounded"
+				    onClick={() =>
+					  openEdit({
+					    song_id: r.song_id,
+					    user_id: panel.data.user_id,
+					    rating: r.rating,
+					  })
+					}
+				  >
+				    Edit
+				  </button>
+				  <Button
+				        onClick={() => deletingReview(r.song_id, panel.data.user_id)}
+				        className="bg-red-500 text-white hover:bg-red-600 pb-2 px-1 w-fit"
+				      >
+				      {"Delete?"}
+				      </Button>
+				</div>
                                 </span>
                               </div>
                             </div>

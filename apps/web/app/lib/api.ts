@@ -81,6 +81,11 @@ export interface UserDetail extends User {
   reviews: { song_id: number; title: string; rating: number }[];
 }
 
+export interface ReviewDetail {
+  song_id: number;
+  user_id: number;
+  rating: number;
+}
 
 export async function getArtists(search = "") {
   const { data } = await api.get<Artist[]>("/artists", { params: { search } });
@@ -133,3 +138,26 @@ export async function addUser(username: string) {
   });
   return data;
 }
+
+export async function makeChange(rating: number, user: number, song: number) {
+  const { data } = await api.put<>(`/reviews`, {
+    user_id: user,
+    song_id: song,
+    rating: rating,
+  });
+  return data;
+}
+
+export async function deleteReview(user: number, song: number) {
+  const { data } = await api.delete<>(`/reviews/${user}/${song}`);
+  return data;
+}
+export async function addReview(user: number, song: number, rating: number) {
+  const { data } = await api.post<>(`/reviews`, {
+    user_id: user,
+    song_id: song,
+    rating: rating,
+  });
+  return data;
+}
+

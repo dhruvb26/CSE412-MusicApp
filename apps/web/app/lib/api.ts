@@ -66,12 +66,30 @@ export interface SongDetail extends Song {
     image_url: string | null;
   }[];
   reviews: {
-    user_id: number;
-    username: string;
-    rating: number;
-    comment?: string | null;
-  }[];
+	  user_id: number;
+	  username: string;
+	  rating: number;
+	  comment?: string | null;
+	}[];
   avg_rating: number;
+}
+
+export interface User {
+  user_id: number;
+  username: string;
+  isadmin: boolean;
+}
+
+export interface UserDetail extends User {
+  username: string | null;
+  user_id: number;
+  reviews: { song_id: number; title: string; rating: number; comment?: string | null;}[];
+}
+
+export interface ReviewDetail {
+  song_id: number;
+  user_id: number;
+  rating: number;
 }
 
 export async function getArtists(search = "") {
@@ -103,3 +121,50 @@ export async function getSong(id: number) {
   const { data } = await api.get<SongDetail>(`/songs/${id}`);
   return data;
 }
+
+export async function getUsers(search = "") {
+  const { data } = await api.get<Users[]>("/users", { params: { search } });
+  return data;
+}
+
+export async function getUser(id: number) {
+  const { data } = await api.get<UserDetail>(`/users/${id}`);
+  return data;
+}
+
+export async function deleteUser(id: number) {
+  const { data } = await api.delete<>(`/users/${id}`);
+  return data;
+}
+
+export async function addUser(username: string) {
+  const { data } = await api.post<>(`/users`, {
+    username
+  });
+  return data;
+}
+
+export async function makeChange(rating: number, user: number, song: number, comment: string) {
+  const { data } = await api.put<>(`/reviews`, {
+    user_id: user,
+    song_id: song,
+    rating: rating,
+    comments: comment,
+  });
+  return data;
+}
+
+export async function deleteReview(user: number, song: number) {
+  const { data } = await api.delete<>(`/reviews/${user}/${song}`);
+  return data;
+}
+export async function addReview(user: number, song: number, rating: number, comment: string) {
+  const { data } = await api.post<>(`/reviews`, {
+    user_id: user,
+    song_id: song,
+    rating: rating,
+    comments: comment,
+  });
+  return data;
+}
+

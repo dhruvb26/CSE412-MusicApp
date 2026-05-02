@@ -10,12 +10,14 @@ class CreateReviewBody(BaseModel):
     user_id: int
     song_id: int
     rating: int
+    comments: str
 
 
 class UpdateReviewBody(BaseModel):
     user_id: int
     song_id: int
     rating: int
+    comments: str
 
 
 @router.post("")
@@ -33,11 +35,11 @@ def create_review(body: CreateReviewBody):
                     status_code=409, detail="Review already exists for this user/song"
                 )
             cur.execute(
-                "INSERT INTO review (user_id, song_id, rating) VALUES (%s, %s, %s)",
-                (body.user_id, body.song_id, body.rating),
+                "INSERT INTO review (user_id, song_id, rating, comment) VALUES (%s, %s, %s,%s)",
+                (body.user_id, body.song_id, body.rating, body.comments),
             )
             conn.commit()
-    return {"user_id": body.user_id, "song_id": body.song_id, "rating": body.rating}
+    return {"user_id": body.user_id, "song_id": body.song_id, "rating": body.rating, "comment": body.comments}
 
 
 @router.put("")
@@ -50,10 +52,14 @@ def update_review(body: UpdateReviewBody):
                 "UPDATE review SET rating = %s WHERE user_id = %s AND song_id = %s RETURNING user_id",
                 (body.rating, body.user_id, body.song_id),
             )
+            cur.execute(
+                "UPDATE review SET comment = %s WHERE user_id = %s AND song_id = %s RETURNING user_id",
+                (body.comments, body.user_id, body.song_id),
+            )
             if not cur.fetchone():
                 raise HTTPException(status_code=404, detail="Review not found")
             conn.commit()
-    return {"user_id": body.user_id, "song_id": body.song_id, "rating": body.rating}
+    return {"user_id": body.user_id, "song_id": body.song_id, "rating": body.rating, "comment": body.comments}
 
 
 @router.delete("/{user_id}/{song_id}")

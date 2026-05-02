@@ -66,6 +66,7 @@ def main() -> None:
                         f"COPY {table} FROM STDIN WITH (FORMAT csv, HEADER false)",
                         f,
                     )
+            cur.execute("ALTER TABLE review ADD COLUMN comment TEXT;")
 
     logger.info("Loaded CSV data into Postgres from %s", data_dir)
 

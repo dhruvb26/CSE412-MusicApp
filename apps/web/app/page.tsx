@@ -1,7 +1,9 @@
 "use client";
 
+import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,34 +12,38 @@ import {
   type AlbumDetail,
   type Artist,
   type ArtistDetail,
-  type User,
-  type UserDetail,
-  type ReviewDetail,
+  addReview,
+  addUser,
+  deleteReview,
+  deleteUser,
   getAlbum,
   getAlbums,
   getArtist,
   getArtists,
   getSong,
   getSongs,
-  getUsers,
   getUser,
-  deleteUser,
-  addUser,
+  getUsers,
   makeChange,
-  deleteReview,
-  addReview,
+  type ReviewDetail,
   type Song,
   type SongDetail,
+  type User,
+  type UserDetail,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 type View = "albums" | "artists" | "songs" | "users";
+
+function titleCase(s: string) {
+  return s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 type Panel =
   | { kind: "album"; data: AlbumDetail }
   | { kind: "artist"; data: ArtistDetail }
   | { kind: "song"; data: SongDetail }
   | { kind: "user"; data: UserDetail }
-  | { kind: "addUser"}
+  | { kind: "addUser" }
   | { kind: "editReview"; data: ReviewDetail }
   | { kind: "addReview"; data: number };
 
@@ -50,7 +56,6 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [panel, setPanel] = useState<Panel | null>(null);
   const [newUsername, setNewUsername] = useState("");
-  const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(1);
   const [comments, setComments] = useState("");
 
@@ -84,31 +89,31 @@ export default function Home() {
     setPanel({ kind: "addUser" });
   }
   async function deletingUser(id: number) {
-    await deleteUser(id)
-    setPanel(null)
+    await deleteUser(id);
+    setPanel(null);
     getUsers().then(setUsers);
   }
   async function addingUser() {
-    await addUser(newUsername)
-    setPanel(null)
-    setNewUsername("")
+    await addUser(newUsername);
+    setPanel(null);
+    setNewUsername("");
     getUsers().then(setUsers);
   }
   async function openEdit(x: ReviewDetail) {
     setSelected(x.rating);
     setPanel({ kind: "editReview", data: x });
   }
-  async function saveChange(user:number, song:number) {
-    await makeChange(selected, user, song, comments)
-    setPanel(null)
-    setSelected(1)
-    setComments("")
+  async function saveChange(user: number, song: number) {
+    await makeChange(selected, user, song, comments);
+    setPanel(null);
+    setSelected(1);
+    setComments("");
   }
-  async function deletingReview(song_id:number, user_id:number) {
-    await deleteReview(user_id, song_id)
-    setPanel(null)
+  async function deletingReview(song_id: number, user_id: number) {
+    await deleteReview(user_id, song_id);
+    setPanel(null);
   }
-async function openReviewAdd(user: number) {
+  async function openReviewAdd(user: number) {
     setPanel({ kind: "addReview", data: user });
   }
   async function addingReview(user: number) {
@@ -117,7 +122,7 @@ async function openReviewAdd(user: number) {
       setNewUsername("No songs available");
       return;
     }
-    await addReview(user, results[0]!.song_id, selected, comments);
+    await addReview(user, results[0]?.song_id, selected, comments);
     setPanel(null);
     setSelected(1);
     setNewUsername("");
@@ -125,148 +130,158 @@ async function openReviewAdd(user: number) {
   }
   return (
     <div className="h-full flex flex-col">
-      <div className="flex gap-6 flex-1 min-h-0">
+      <nav className="shrink-0 border-b-2 border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+        <div className="mx-auto px-3 sm:px-6 h-14 flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 shrink-0">
+            <h1 className="text-sm sm:text-base md:text-lg font-medium tracking-tight whitespace-nowrap">
+              MusicApp
+            </h1>
+            <span className="text-muted-foreground hidden lg:inline whitespace-nowrap">
+              by Dhruv Bansal, Marlow Odeh, & Austin Kearsley
+            </span>
+          </div>
+          <div className="flex gap-0.5 sm:gap-1 mx-auto shrink-0">
+            {(["albums", "artists", "songs", "users"] as const).map((v) => (
+              <Button
+                key={v}
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setView(v);
+                  setSearch("");
+                }}
+                className={cn(
+                  "capitalize sm:text-sm text-xs px-2 sm:px-3",
+                  view === v
+                    ? "text-foreground bg-muted"
+                    : "text-muted-foreground/60",
+                )}
+              >
+                {v}
+              </Button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Input
+              placeholder="Search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-28 sm:w-44 h-8 text-xs"
+            />
+            <ThemeToggle />
+          </div>
+        </div>
+      </nav>
+
+      <div className="flex flex-1 min-h-0 relative">
+        {panel && (
+          <button
+            type="button"
+            className="fixed inset-0 z-10 bg-black/40 md:hidden"
+            onClick={() => setPanel(null)}
+            aria-label="Close panel"
+          />
+        )}
         <div
           className={cn(
-            "shrink-0 overflow-y-auto border-r pr-4 transition-all",
-            panel ? "w-80" : "w-0 border-r-0 pr-0",
+            "shrink-0 overflow-y-auto border-r-2 border-border/40 transition-all bg-background",
+            panel
+              ? "w-72 sm:w-80 p-3 sm:p-4 absolute inset-y-0 left-0 z-20 md:relative"
+              : "w-0 border-r-0 p-0",
           )}
         >
           {panel && (
             <div className="space-y-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPanel(null)}
-              >
-                Close
-              </Button>
-
-	      {panel.kind === "addUser" && (
-                <>
-                  <div>
-                    <div className="flex flex-col gap-2">
-                      <h2 className="font-bold text-lg">{"Create New User"}</h2>
-                      <input
-			type="text"
-			placeholder="Enter Username"
-			value={newUsername}
-			onChange={(e) => setNewUsername(e.target.value)}
-			className="border px-3 py-2 rounded w-48"
-		      />
-		      <button
-			      type="button"
-			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
-			      onClick={() => addingUser()}
-			    >
-			      + Add User
-		    </button>
-                    </div>
+              {panel.kind === "addUser" && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-medium text-base">Create New User</h2>
                   </div>
-                </>
+                  <Input
+                    placeholder="Enter username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                  />
+                  <Button size="sm" onClick={() => addingUser()}>
+                    Add User
+                  </Button>
+                </div>
               )}
               {panel.kind === "addReview" && (
-                <>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-medium text-base">Create New Review</h2>
+                  </div>
+                  <Input
+                    placeholder="Search for a song"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Enter comment"
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                  />
                   <div>
-                    <div className="flex flex-col gap-2">
-                      <h2 className="font-bold text-lg">{"Create New Review"}</h2>
-                      <input
-			type="text"
-			placeholder="Enter Song"
-			value={newUsername}
-			onChange={(e) => setNewUsername(e.target.value)}
-			className="border px-3 py-2 rounded w-48"
-		      />
-		      <input
-			type="text"
-			placeholder="Enter Comment"
-			value={comments}
-			onChange={(e) => setComments(e.target.value)}
-			className="border px-3 py-2 rounded w-48"
-		      />
-		      <div className="relative inline-block text-left">
-			  <button
-			    onClick={() => setOpen(!open)}
-			    className="bg-gray-800 text-white px-3 py-1 rounded"
-			  >
-			    {selected} ▾
-			  </button>
-
-			  {open && (
-			    <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md z-50">
-			      {[1,2,3,4,5].map((item) => (
-				<button
-				  key={item}
-				  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
-				  onClick={() => {
-				    setSelected(item);
-				    setOpen(false);
-				  }}
-				>
-				  {item}
-				</button>
-			      ))}
-			    </div>
-			  )}
-			</div>
-		      <button
-			      type="button"
-			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
-			      onClick={() => addingReview(panel.data)}
-			    >
-			      + Add review
-		    </button>
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                      Rating
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Button
+                          key={n}
+                          variant={selected >= n ? "default" : "outline"}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                          onClick={() => setSelected(n)}
+                        >
+                          {n}
+                        </Button>
+                      ))}
                     </div>
                   </div>
-                </>
+                  <Button size="sm" onClick={() => addingReview(panel.data)}>
+                    Add Review
+                  </Button>
+                </div>
               )}
               {panel.kind === "editReview" && (
-                <>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-medium text-base">Edit Review</h2>
+                  </div>
+                  <Input
+                    placeholder="Enter comment"
+                    value={comments}
+                    onChange={(e) => setComments(e.target.value)}
+                  />
                   <div>
-                    <div className="flex flex-col gap-2">
-                      <h2 className="font-bold text-lg">{"Edit Review"}</h2>
-                      <input
-			type="text"
-			placeholder="Enter Comment"
-			value={comments}
-			onChange={(e) => setComments(e.target.value)}
-			className="border px-3 py-2 rounded w-48"
-		      />
-                      <div className="relative inline-block text-left">
-			  <button
-			    onClick={() => setOpen(!open)}
-			    className="bg-gray-800 text-white px-3 py-1 rounded"
-			  >
-			    {selected} ▾
-			  </button>
-
-			  {open && (
-			    <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-md z-50">
-			      {[1,2,3,4,5].map((item) => (
-				<button
-				  key={item}
-				  className="block w-full text-left px-3 py-2 hover:bg-gray-100"
-				  onClick={() => {
-				    setSelected(item);
-				    setOpen(false);
-				  }}
-				>
-				  {item}
-				</button>
-			      ))}
-			    </div>
-			  )}
-			</div>
-			<button
-			      type="button"
-			      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
-			      onClick={() => saveChange(panel.data.user_id, panel.data.song_id)}
-			    >
-			      Save Change
-		    </button>
+                    <p className="text-xs font-medium text-muted-foreground mb-1.5">
+                      Rating
+                    </p>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Button
+                          key={n}
+                          variant={selected >= n ? "default" : "outline"}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                          onClick={() => setSelected(n)}
+                        >
+                          {n}
+                        </Button>
+                      ))}
                     </div>
                   </div>
-                </>
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      saveChange(panel.data.user_id, panel.data.song_id)
+                    }
+                  >
+                    Save Change
+                  </Button>
+                </div>
               )}
 
               {panel.kind === "album" && (
@@ -282,7 +297,9 @@ async function openReviewAdd(user: number) {
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-lg">{panel.data.title}</h2>
+                      <h2 className="font-medium text-base">
+                        {panel.data.title}
+                      </h2>
                       <Badge variant="outline">{panel.data.type}</Badge>
                     </div>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -327,97 +344,102 @@ async function openReviewAdd(user: number) {
               {panel.kind === "user" && (
                 <>
                   <div>
-                    <div className="flex flex-col gap-2">
-                      <h2 className="font-bold text-lg">{panel.data.username}</h2>
-                      <br />
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-medium text-base">
+                        {panel.data.username
+                          ? titleCase(panel.data.username)
+                          : ""}
+                      </h2>
+                    </div>
+                    <div className="flex gap-2 mt-2">
                       <Button
-                        key={panel.data.username}
-                        onClick={() => deletingUser(panel.data.user_id)}
-                        className="bg-red-500 text-white hover:bg-red-600 w-fit"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openReviewAdd(panel.data.user_id)}
                       >
-                      {"Delete?"}
+                        New Review
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-400 border-red-400/30 hover:bg-red-400/10 hover:text-red-400"
+                        onClick={() => deletingUser(panel.data.user_id)}
+                      >
+                        Delete User
                       </Button>
                     </div>
-                    {panel.data.reviews.length >= 0 && (
+                  </div>
+
+                  {panel.data.reviews.length > 0 && (
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">
-                        Reviews
-                      </p>
-                      <div className="space-y-2">
-                      		<button
-				    type="button"
-				    className="bg-green-500 text-white px-2 py-1 rounded"
-				    onClick={() =>
-					  openReviewAdd(panel.data.user_id)
-					}
-				  >
-				    New Review
-				  </button>
+                      <div className="space-y-1">
                         {panel.data.reviews.map((r) => {
-                          const displayName = r.title
-                            .replace(/_/g, " ")
-                            .replace(/\b\w/g, (c) => c.toUpperCase());
+                          const displayName = titleCase(r.title);
                           return (
                             <div
                               key={r.song_id}
-                              className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-muted/50"
+                              className="px-2 py-2 rounded-md hover:bg-muted/50"
                             >
-                              <div className="w-6 h-6 rounded-full shrink-0 bg-foreground" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate">
+                              <div className="flex items-center justify-between">
+                                <p className="text-sm font-medium truncate flex-1">
                                   {displayName}
                                 </p>
-                                <span className="flex gap-0.5">
-                                  {[1, 2, 3, 4, 5].map((n) => (
-                                    <span
-                                      key={n}
-                                      className={cn(
-                                        "text-[10px]",
-                                        n <= r.rating
-                                          ? "text-foreground"
-                                          : "text-muted-foreground/30",
-                                      )}
-                                    >
-                                      			●
-                                    </span>
-                                  ))}
-                                  
-                                  <div className="col-span-full w-full flex justify-end">
-				  <button
-				    type="button"
-				    className="bg-green-500 text-white px-2 py-1 rounded"
-				    onClick={() =>
-					  openEdit({
-					    song_id: r.song_id,
-					    user_id: panel.data.user_id,
-					    rating: r.rating,
-					  })
-					}
-				  >
-				    Edit
-				  </button>
-				  <Button
-				        onClick={() => deletingReview(r.song_id, panel.data.user_id)}
-				        className="bg-red-500 text-white hover:bg-red-600 pb-2 px-1 w-fit"
-				      >
-				      {"Delete?"}
-				      </Button>
-				      
-				</div>
-                                </span>
-                                {r.comment && (
-                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                    {"Review: " + r.comment}
-                                  </p>
-                                  )}
+                                <div className="flex items-center gap-2 ml-2 shrink-0">
+                                  <span className="flex gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((n) => (
+                                      <span
+                                        key={n}
+                                        className={cn(
+                                          "text-[10px]",
+                                          n <= r.rating
+                                            ? "text-foreground"
+                                            : "text-muted-foreground/30",
+                                        )}
+                                      >
+                                        ●
+                                      </span>
+                                    ))}
+                                  </span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-muted-foreground"
+                                    onClick={() =>
+                                      openEdit({
+                                        song_id: r.song_id,
+                                        user_id: panel.data.user_id,
+                                        rating: r.rating,
+                                      })
+                                    }
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-red-400 hover:text-red-400 hover:bg-red-400/10"
+                                    onClick={() =>
+                                      deletingReview(
+                                        r.song_id,
+                                        panel.data.user_id,
+                                      )
+                                    }
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </div>
                               </div>
+                              {r.comment && (
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                                  {r.comment}
+                                </p>
+                              )}
                             </div>
                           );
                         })}
                       </div>
                     </div>
                   )}
-                  </div>
                 </>
               )}
 
@@ -434,7 +456,9 @@ async function openReviewAdd(user: number) {
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-lg">{panel.data.name}</h2>
+                      <h2 className="font-medium text-base">
+                        {panel.data.name}
+                      </h2>
                       <Badge variant="outline">{panel.data.type}</Badge>
                       <Badge variant="outline">{panel.data.country}</Badge>
                     </div>
@@ -516,12 +540,16 @@ async function openReviewAdd(user: number) {
                   )}
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="font-bold text-lg">{panel.data.title}</h2>
+                      <h2 className="font-medium text-base">
+                        {panel.data.title}
+                      </h2>
                       <span className="flex items-center gap-1 text-sm text-yellow-500 font-medium">
                         <svg
                           viewBox="0 0 24 24"
                           fill="currentColor"
                           className="w-3.5 h-3.5"
+                          role="img"
+                          aria-label="Star rating"
                         >
                           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                         </svg>
@@ -584,9 +612,7 @@ async function openReviewAdd(user: number) {
                       </p>
                       <div className="space-y-2">
                         {panel.data.reviews.map((r) => {
-                          const displayName = r.username
-                            .replace(/_/g, " ")
-                            .replace(/\b\w/g, (c) => c.toUpperCase());
+                          const displayName = titleCase(r.username);
                           return (
                             <div
                               key={r.user_id}
@@ -608,7 +634,7 @@ async function openReviewAdd(user: number) {
                                           : "text-muted-foreground/30",
                                       )}
                                     >
-                                      			●
+                                      ●
                                     </span>
                                   ))}
                                 </span>
@@ -616,7 +642,7 @@ async function openReviewAdd(user: number) {
                                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                     {r.comment}
                                   </p>
-                                  )}
+                                )}
                               </div>
                             </div>
                           );
@@ -630,41 +656,13 @@ async function openReviewAdd(user: number) {
           )}
         </div>
 
-        <div className="flex-1 min-w-0 overflow-y-auto space-y-4">
-          <div className="flex items-center justify-between sticky top-0 bg-background z-10 pb-2 px-2">
-            <div className="flex gap-4 text-sm">
-              {(["albums", "artists", "songs","users"] as const).map((v) => (
-                <Button
-                  key={v}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setView(v);
-                    setSearch("");
-                  }}
-                  className={cn(
-                    "capitalize",
-                    view === v ? "text-foreground" : "text-muted-foreground/60",
-                  )}
-                >
-                  {v}
-                </Button>
-              ))}
-            </div>
-            <Input
-              placeholder="Search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-48"
-            />
-          </div>
-
+        <div className="flex-1 min-w-0 overflow-y-auto p-3 sm:p-6">
           <div
             className={cn(
-              "grid gap-4",
+              "grid gap-3 sm:gap-4 max-w-[1400px] mx-auto",
               panel
-                ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4"
-                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5",
+                ? "grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
             )}
           >
             {view === "albums" &&
@@ -672,7 +670,7 @@ async function openReviewAdd(user: number) {
                 <button
                   key={album.album_id}
                   type="button"
-                  className="group relative cursor-pointer text-left"
+                  className="group relative cursor-pointer text-left overflow-hidden"
                   onClick={() => openAlbum(album.album_id)}
                 >
                   {album.image_url ? (
@@ -681,17 +679,18 @@ async function openReviewAdd(user: number) {
                       alt={album.title}
                       width={300}
                       height={300}
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       priority
                       className="w-full aspect-square object-cover"
                     />
                   ) : (
                     <div className="w-full aspect-square bg-muted" />
                   )}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <p className="text-white font-semibold text-sm truncate">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 sm:p-3">
+                    <p className="text-white font-medium text-xs sm:text-sm truncate">
                       {album.title}
                     </p>
-                    <p className="text-white/70 text-xs truncate">
+                    <p className="text-white/70 text-[10px] sm:text-xs truncate">
                       {album.artist_name}
                     </p>
                   </div>
@@ -703,7 +702,7 @@ async function openReviewAdd(user: number) {
                 <button
                   key={artist.artist_id}
                   type="button"
-                  className="group relative cursor-pointer text-left"
+                  className="group relative cursor-pointer text-left overflow-hidden"
                   onClick={() => openArtist(artist.artist_id)}
                 >
                   {artist.image_url ? (
@@ -712,17 +711,18 @@ async function openReviewAdd(user: number) {
                       alt={artist.name}
                       width={300}
                       height={300}
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       priority
                       className="w-full aspect-square object-cover"
                     />
                   ) : (
                     <div className="w-full aspect-square bg-muted" />
                   )}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <p className="text-white font-semibold text-sm truncate">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 sm:p-3">
+                    <p className="text-white font-medium text-xs sm:text-sm truncate">
                       {artist.name}
                     </p>
-                    <p className="text-white/70 text-xs truncate">
+                    <p className="text-white/70 text-[10px] sm:text-xs truncate">
                       {artist.country}
                     </p>
                   </div>
@@ -734,7 +734,7 @@ async function openReviewAdd(user: number) {
                 <button
                   key={song.song_id}
                   type="button"
-                  className="group relative cursor-pointer text-left"
+                  className="group relative cursor-pointer text-left overflow-hidden"
                   onClick={() => openSong(song.song_id)}
                 >
                   {song.image_url ? (
@@ -743,45 +743,52 @@ async function openReviewAdd(user: number) {
                       alt={song.title}
                       width={300}
                       height={300}
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                       priority
                       className="w-full aspect-square object-cover"
                     />
                   ) : (
                     <div className="w-full aspect-square bg-muted" />
                   )}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                    <p className="text-white font-semibold text-sm truncate">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2 sm:p-3">
+                    <p className="text-white font-medium text-xs sm:text-sm truncate">
                       {song.title}
                     </p>
-                    <p className="text-white/70 text-xs truncate">
+                    <p className="text-white/70 text-[10px] sm:text-xs truncate">
                       {song.artist_name}
                     </p>
                   </div>
                 </button>
               ))}
-              {view === "users" && (
-		  <>
-		  <div className="col-span-full flex justify-end">
-		    <button
-		      type="button"
-		      className="bg-green-500 text-white px-4 py-2 rounded w-fit"
-		      onClick={() => openAdd()}
-		    >
-		      Create New User
-		    </button>
-		    </div>
-		    {users.map((user) => (
-		      <button
-			key={user.user_id}
-			type="button"
-			className="group relative cursor-pointer text-left"
-			onClick={() => openUser(user.user_id)}
-		      >
-			{user.username}
-		      </button>
-		    ))}
-		  </>
-		)}
+            {view === "users" && (
+              <>
+                <div className="col-span-full flex justify-end">
+                  <Button variant="outline" size="sm" onClick={() => openAdd()}>
+                    New User
+                  </Button>
+                </div>
+                {users.map((user) => (
+                  <button
+                    key={user.user_id}
+                    type="button"
+                    className="group relative cursor-pointer text-left rounded-md border border-muted bg-muted/30 p-4 hover:bg-muted/60 transition-colors"
+                    onClick={() => openUser(user.user_id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-foreground shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {titleCase(user.username)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.isadmin ? "Admin" : "User"}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </div>

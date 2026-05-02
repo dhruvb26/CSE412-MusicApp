@@ -1,7 +1,6 @@
+from db.connection import get_conn
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-
-from db.connection import get_conn
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -18,15 +17,14 @@ def list_users():
                 'SELECT user_id, username, isAdmin FROM "User" ORDER BY user_id'
             )
             rows = cur.fetchall()
-    return [
-        {"user_id": r[0], "username": r[1], "is_admin": r[2]} for r in rows
-    ]
+    return [{"user_id": r[0], "username": r[1], "is_admin": r[2]} for r in rows]
+
 
 @router.get("/{user_id}")
 def get_user(user_id: int):
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute("SELECT username FROM \"User\" WHERE user_id = %s", (user_id,))
+            cur.execute('SELECT username FROM "User" WHERE user_id = %s', (user_id,))
             row = cur.fetchone()
             if not row:
                 raise HTTPException(status_code=404, detail="User not found")

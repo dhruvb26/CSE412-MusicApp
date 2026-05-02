@@ -66,11 +66,11 @@ export interface SongDetail extends Song {
     image_url: string | null;
   }[];
   reviews: {
-	  user_id: number;
-	  username: string;
-	  rating: number;
-	  comment?: string | null;
-	}[];
+    user_id: number;
+    username: string;
+    rating: number;
+    comment?: string | null;
+  }[];
   avg_rating: number;
 }
 
@@ -83,7 +83,12 @@ export interface User {
 export interface UserDetail extends User {
   username: string | null;
   user_id: number;
-  reviews: { song_id: number; title: string; rating: number; comment?: string | null;}[];
+  reviews: {
+    song_id: number;
+    title: string;
+    rating: number;
+    comment?: string | null;
+  }[];
 }
 
 export interface ReviewDetail {
@@ -142,7 +147,12 @@ export async function addUser(username: string) {
   return data;
 }
 
-export async function makeChange(rating: number, user: number, song: number, comment: string) {
+export async function makeChange(
+  rating: number,
+  user: number,
+  song: number,
+  comment: string,
+) {
   const { data } = await api.put(`/reviews`, {
     user_id: user,
     song_id: song,
@@ -157,7 +167,12 @@ export async function deleteReview(user: number, song: number) {
   return data;
 }
 
-export async function addReview(user: number, song: number, rating: number, comment: string) {
+export async function addReview(
+  user: number,
+  song: number,
+  rating: number,
+  comment: string,
+) {
   const { data } = await api.post(`/reviews`, {
     user_id: user,
     song_id: song,
@@ -166,4 +181,3 @@ export async function addReview(user: number, song: number, rating: number, comm
   });
   return data;
 }
-
